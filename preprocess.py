@@ -35,6 +35,7 @@ data11 = pd.read_csv("./Data/gta_data/path_11/data.csv", sep=",")
 
 data_tot_norm = pd.concat([data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11], ignore_index=True)
 
+data_tot_norm["steering_angle"].hist(bins=80)
 
 new_data = bf.cap_hist(data_tot_norm, k=7000)
 
@@ -47,17 +48,27 @@ data1 = pd.read_csv("./Data/gta_data/path_traffic_1/data.csv", sep=",")
 data2 = pd.read_csv("./Data/gta_data/path_traffic_2/data.csv", sep=",")
 data3 = pd.read_csv("./Data/gta_data/path_traffic_3/data.csv", sep=",")
 data4 = pd.read_csv("./Data/gta_data/path_traffic_4/data.csv", sep=",")
+data5 = pd.read_csv("./Data/gta_data/path_traffic_5/data.csv", sep=",")
+data6 = pd.read_csv("./Data/gta_data/path_traffic_6/data.csv", sep=",")
 
-data_tot_traffic = pd.concat([data1, data2, data3, data4], ignore_index=True)
+data_tot_traffic = pd.concat([data1, data2, data3, data4, data5, data6], ignore_index=True)
 
+data_tot_traffic["steering_angle"].hist(bins=80)
 
-new_data = bf.cap_hist(data_tot_traffic, k=4000)
+new_data = bf.cap_hist(data_tot_traffic, k=10000)
 
 new_data.to_csv("./Data/gta_data/data_tot_traffic.csv")
 
 #=============================== Traffic + normal dataset =====================
+data_tot_norm = pd.read_csv("./Data/gta_data/data_tot_norm.csv", index_col=0)
+data_tot_traffic = pd.read_csv("./Data/gta_data/data_tot_traffic.csv", index_col=0)
 
 data_tot = pd.concat([data_tot_norm, data_tot_traffic], ignore_index=True)
+
+data_tot["steering_angle"].hist(bins=80)
+data_tot["throttle"].hist(bins=80)
+data_tot["speed"].hist(bins=80)
+
 
 data_tot.to_csv("./Data/gta_data/data_tot.csv")
 

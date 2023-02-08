@@ -105,7 +105,7 @@ class ViT_MapNet_v1(nn.Module):
         self.n_linear_speed = NormLinear(1, 2048, 0)
 
         
-        self.mlp = MLP(2048) 
+        self.mlp = MLP(2048)
         
 
         self.head_1 = nn.Linear(32, 2) #steering angle, acceleration

@@ -8,7 +8,7 @@ from PIL import Image
 import mss
 import pygame
 
-path_name = "path_traffic_4/"
+path_name = "path_traffic_6/"
 
 images_save_path = "./Data/gta_data/" + path_name + "images/"
 csv_save_path = "./Data/gta_data/" + path_name
