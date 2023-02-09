@@ -62,17 +62,17 @@ def create_train_test_dataframe(data, group_n=1, test_size=0.2, save_dir = "./Da
     
     idx_order = np.array(list(SubsetRandomSampler(list(BatchSampler(SequentialSampler(data.index), batch_size=group_n, drop_last=True)))), dtype=np.int64)
     
-    #idx_tr, idx_test = train_test_split(idx_order, test_size=test_size)
+    idx_tr, idx_test = train_test_split(idx_order, test_size=test_size)
     
-    data_train = data.iloc[idx_order]
+    data_train = data.iloc[idx_tr.flatten()]
     
-    #data_test = data.iloc[idx_test.flatten()]
+    data_test = data.iloc[idx_test.flatten()]
     
-    #if(save):
-    #    data_train.to_csv(save_dir + train_file_name)
-    #    data_test.to_csv(save_dir + test_file_name)
+    if(save):
+        data_train.to_csv(save_dir + train_file_name)
+        data_test.to_csv(save_dir + test_file_name)
     
-    return data_train
+    return data_train, data_test
 
 
 

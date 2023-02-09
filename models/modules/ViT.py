@@ -5,8 +5,8 @@ import baseFunctions as bf
 
 
 class ViT(nn.Module):
-    def __init__(self):
-        super().__init__(image_size=224, patch_size=16, d_model=512, nhead=8, num_layers=6)
+    def __init__(self, image_size=224, patch_size=16, d_model=512, nhead=8, num_layers=6):
+        super().__init__()
         
         self.image_size = image_size
         self.patch_size = patch_size
