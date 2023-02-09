@@ -7,7 +7,7 @@ from models.modules.general import *
 
         
 
-class ViT_MapNet_v1(nn.Module):
+class ViT_MapNet_LSTM_v1(nn.Module):
 
     def __init__(self, device, num_frames, frame_per_batch):
 
