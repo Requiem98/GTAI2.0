@@ -130,7 +130,7 @@ class PREPROCESS:
     
 class GTADataset(Dataset):
 
-    def __init__(self, csv_file, root_dir, augment=False, mmap=False, img_dir=""):
+    def __init__(self, csv_file, root_dir, augment=False, mmap=False, img_dir="./Data/gta_data/"):
 
         self.data = pd.read_csv(root_dir + csv_file, index_col=0, sep=",")
         self.data = quantized_stat(self.data)
@@ -139,6 +139,8 @@ class GTADataset(Dataset):
         self.augment = augment
         self.mmap = mmap
         self.preprocess = PREPROCESS()
+        
+        self.data["path"] = self.data["path"].str.split(pat="/", n = 3, expand=True).iloc[:, -1]
     
 
     def __len__(self):
@@ -149,7 +151,7 @@ class GTADataset(Dataset):
             idx = idx.tolist()
         
         
-        img_names = self.data.iloc[idx, 4]
+        img_names = self.img_dir + self.data.iloc[idx, 4]
     
         if(isinstance(img_names, str)):
             img_names = [img_names]
