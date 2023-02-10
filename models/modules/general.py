@@ -47,7 +47,7 @@ class MLP(nn.Module):
         
         layers = list()
         
-        for i in range(len(hidden_dims)-1):
+        for i in range(len(hidden_dims)):
             
             d_in = in_dim if i == 0 else hidden_dims[i-1]
             
