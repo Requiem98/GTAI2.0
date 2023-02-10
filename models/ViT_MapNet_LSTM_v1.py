@@ -64,7 +64,7 @@ class ViT_MapNet_LSTM_v1(nn.Module):
         
         x = x[-1]     #(B, D)
         
-        x = self.mlp(x[-1])
+        x = self.mlp(x)
         
         x_st_acc = self.head_1(x)
         
@@ -77,7 +77,7 @@ class ViT_MapNet_LSTM_v1(nn.Module):
         
         x = torch.cat([x_img, x_mmap], axis = 1) #Bx(8192+24625) = Bx32817
     
-        x = x.reshape(self.num_frames, self.frame_per_batch, x.shape[1]) #(S, B, D)
+        x = x.reshape(self.frame_per_batch, self.num_frames, x.shape[1]) #(S, B, D)
         
         return x
         
