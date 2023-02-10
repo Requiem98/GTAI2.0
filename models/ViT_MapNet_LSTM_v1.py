@@ -159,9 +159,9 @@ class Trainer():
                 
                 pred, pred_brk = self.model(batch["img"].to(self.model.device), batch["mmap"].to(self.model.device), batch["speed"].to(self.model.device).unsqueeze(1))                  
 
-                gt_steeringAngle = batch["statistics"][:,0].to(self.model.device)
-                gt_acceleration = batch["statistics"][:,1].to(self.model.device)
-                gt_brake = batch["brake"].to(self.model.device)
+                gt_steeringAngle = batch["statistics"][9::10,0].to(self.model.device)
+                gt_acceleration = batch["statistics"][9::10,1].to(self.model.device)
+                gt_brake = batch["brake"][9::10].to(self.model.device)
 
                 loss1 = self.mse_loss(pred[:,0].reshape(-1), gt_steeringAngle)
                 
@@ -242,9 +242,9 @@ class Trainer():
                 
                 pred, pred_brk = self.model(batch["img"].to(self.model.device), batch["mmap"].to(self.model.device), batch["speed"].to(self.model.device).unsqueeze(1))                     
 
-                gt_steeringAngle = batch["statistics"][:,0].to(self.model.device)
-                gt_acceleration = batch["statistics"][:,1].to(self.model.device)
-                gt_brake = batch["brake"].to(self.model.device)
+                gt_steeringAngle = batch["statistics"][9::10,0].to(self.model.device)
+                gt_acceleration = batch["statistics"][9::10,1].to(self.model.device)
+                gt_brake = batch["brake"][9::10].to(self.model.device)
 
                 loss1 = self.mse_loss(pred[:,0].reshape(-1), gt_steeringAngle)
                 
