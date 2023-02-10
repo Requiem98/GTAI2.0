@@ -60,9 +60,9 @@ class ViT_MapNet_LSTM_v1(nn.Module):
         
         x = self._process_features(x_img, x_mmap)
         
-        x = self.lstm(x)
+        x, _ = self.lstm(x)
         
-        x = self.mlp(x)
+        x = self.mlp(x[-1])
         
         x_st_acc = self.head_1(x)
         
