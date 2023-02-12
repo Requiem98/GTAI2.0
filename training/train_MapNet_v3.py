@@ -38,7 +38,7 @@ if __name__ == '__main__':
     train_dl = DataLoader(train_dataset, 
                             batch_size=512, 
                             shuffle=True,
-                            num_workers=10)
+                            num_workers=0)
     
     test_dl = DataLoader(test_dataset, 
                             batch_size=512, 
@@ -56,8 +56,8 @@ if __name__ == '__main__':
     
     
     trainer.train_model(train_dl,
-                        max_epoch=100, 
-                        steps_per_epoch=0,
+                        max_epoch=1, 
+                        steps_per_epoch=1,
                         lr=0.001,
                         weight_decay=0,
                         log_step=1, 

@@ -15,8 +15,8 @@ class MapNet_v3(nn.Module):
         self.conv2 = CONV_BLOCK(24, 36, 5, 2, "valid", 1)  #Bx24x53x53
         self.conv3 = CONV_BLOCK(36, 48, 5, 2, "valid", 1)  #Bx24x25x25
         
-        self.conv4 = CONV_BLOCK(48, 64, 3, 2, "valid", 1)  #Bx24x23x23
-        self.conv5 = CONV_BLOCK(64, 64, 3, 2, "valid", 1)  #Bx24x21x21
+        self.conv4 = CONV_BLOCK(48, 64, 3, 1, "valid", 1)  #Bx24x23x23
+        self.conv5 = CONV_BLOCK(64, 64, 3, 1, "valid", 1)  #Bx24x21x21
         
         self.flatten = nn.Flatten()
        
@@ -184,7 +184,7 @@ class Trainer():
 
             with torch.no_grad():
                 
-                pred = self.model(batch["img"].to(self.device), batch["mmap"].to(self.device), batch["speed"].to(self.device).unsqueeze(1))                     
+                pred = self.model(batch["img"].to(self.device), batch["mmap"].to(self.device))                     
 
                 gt_steeringAngle = batch["statistics"][:,0].to(self.device)
 
