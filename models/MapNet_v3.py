@@ -4,7 +4,7 @@ import baseFunctions as bf
     
 class MapNet_v3(nn.Module):
 
-    def __init__(self, device):
+    def __init__(self):
 
         super().__init__()
 
