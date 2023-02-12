@@ -1,8 +1,16 @@
 from libraries import *
 import baseFunctions as bf
-from models.MapNet_v5 import *
+from models.ViT_MapNet_LSTM_v1 import *
 
 
+def create_dataframe(data, group_n=1):
+    
+  
+    idx_order = np.array(list(SubsetRandomSampler(list(BatchSampler(SequentialSampler(data.index), batch_size=group_n, drop_last=True)))), dtype=np.int64)
+    
+    data_train = data.iloc[idx_order.flatten()]
+    
+    return data_train
 
 
 
@@ -20,8 +28,8 @@ if __name__ == '__main__':
     
     #Path per i salvataggi dei checkpoints
     #SINTASSI: ./Data/models/NOME_MODELLO/etc...
-    CKP_DIR = "./Data/models/MapNet_v5/checkpoint/"
-    SCORE_DIR = "./Data/models/MapNet_v5/scores/"
+    CKP_DIR = "./Data/models/ViT_MapNet_LSTM_v1/checkpoint/"
+    SCORE_DIR = "./Data/models/ViT_MapNet_LSTM_v1/scores/"
     SCORE_FILE = 'history_score.pkl'
     
     
@@ -30,31 +38,40 @@ if __name__ == '__main__':
     
     if not os.path.exists(SCORE_DIR):
         os.makedirs(SCORE_DIR)
+        
     
-    train_dataset = bf.GTADataset("data_tot.csv", DATA_ROOT_DIR, bf.preprocess, mmap=True)
-    test_dataset = bf.GTADataset("data_TEST.csv", DATA_ROOT_DIR, bf.test_preprocess, mmap=True)
+    #data = pd.read_csv(DATA_ROOT_DIR + "data_tot.csv", index_col=0)
+
+    #create_dataframe(data, 10).to_csv('./Data/gta_data/data_tot_seq.csv')
+    
+    
+    
+    train_dataset = bf.GTADataset("data_tot_seq.csv", DATA_ROOT_DIR, augment=True, mmap=True)
+    
+    test_dataset = bf.GTADataset("data_TEST.csv", DATA_ROOT_DIR, mmap=True)
+    #test_dataset = bf.GTADataset("temp.csv", DATA_ROOT_DIR, mmap=True)
     
     train_dl = DataLoader(train_dataset, 
-                            batch_size=512, 
-                            shuffle=True,
+                            batch_size=10*10,
+                            drop_last = True,
                             num_workers=10)
     
     test_dl = DataLoader(test_dataset, 
-                            batch_size=512, 
+                            batch_size=10*10,
+                            drop_last = True,
                             num_workers=0)
     
 
 
-    model = MapNet_v5(device = device).to(device) #qui inserire modello da trainare
-    model.load_state_dict(torch.load(CKP_DIR+ "00100.pth"))
-    #model.load_state_dict(torch.load("./Data/models/MapNet_v4/checkpoint/"+ "00050.pth"), strict = False)
+    model = ViT_MapNet_LSTM_v1(device = device, num_frames=10, frame_per_batch=10).to(device) #qui inserire modello da trainare
+    #model.load_state_dict(torch.load(CKP_DIR+ "00100.pth"))
     
     trainer = Trainer(model, 
                       ckp_dir = CKP_DIR, 
                       score_dir = SCORE_DIR, 
                       score_file = SCORE_FILE)
     
-    """
+    
     trainer.train_model(train_dl,
                         max_epoch=50, 
                         steps_per_epoch=0,
@@ -62,8 +79,8 @@ if __name__ == '__main__':
                         weight_decay=0,
                         log_step=1, 
                         ckp_save_step = 5,
-                        ckp_epoch=50)
-    """
+                        ckp_epoch=0)
+    
     
     print('Starting test...')
     sa_pred, acc_pred, brk_pred, sa_gt, acc_gt, brk_gt = trainer.test_model(test_dl)
@@ -83,15 +100,15 @@ if __name__ == '__main__':
     ax[0, 2].plot(brk_gt[1:], alpha=0.5)
     
     
-    hs = bf.read_object(SCORE_DIR+"00100_history_score.pkl")
+    hs = bf.read_object(SCORE_DIR+"00050_history_score.pkl")
 
     ax[1, 0].plot(hs["MAE_sa_train"])
     ax[1, 1].plot(hs["MAE_acc_train"])
-    ax[1, 2].plot(hs["MAE_brake_train"])
-    
-    
-#== Best Result ==
-#Total Test Loss:  0.0505 --- MAE SA:  0.0363 --- MAE Acc:  0.1719 --- MAE brk:  0.0113 epoch 50
-#Total Test Loss:  0.0492 --- MAE SA:  0.0366 --- MAE Acc:  0.1691 --- MAE brk:  0.0108 epoch 100
+    ax[1, 2].plot(hs["Recall_brake_train"])
     
 
+#== lasts epoch results (train) ==
+#
+
+#== Best Result ==
+#

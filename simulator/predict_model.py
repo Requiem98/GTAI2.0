@@ -17,10 +17,14 @@ import baseFunctions as bf
 from simulator.directkeys import PressKey
 from simulator.directkeys import ReleaseKey
 from PIL import Image
+from line_detector.LineDetector import *
+from object_detection.SSD import *
 
 from models.ViT_MapNet_v1 import *
 CKP_DIR = "./Data/models/ViT_MapNet_v1/checkpoint/"
 
+cv2.namedWindow("win1");
+cv2.moveWindow("win1", 0,0);
 
 j = pyvjoy.VJoyDevice(1)
 
@@ -30,39 +34,19 @@ preprocess = bf.PREPROCESS()
 
 def get_model(device):
     model = ViT_MapNet_v1(device = device).to(device) #qui inserire modello da trainare
-    model.load_state_dict(torch.load(CKP_DIR+ "00100.pth"))
+    model.load_state_dict(torch.load(CKP_DIR+ "00150.pth"))
     return model
 
 
 
-class FPSTimer:
-	def __init__(self):
-		self.t = time.time()
-		self.iter = 0
-		
-	def reset(self):
-		self.t = time.time()
-		self.iter = 0
-		
-	def on_frame(self):
-		self.iter += 1
-		if self.iter == 100:
-			e = time.time()
-			print('FPS: %0.2f' % (100.0 / (e - self.t)))
-			self.t = time.time()
-			self.iter = 0
-
-
-
-def lerp(a, b, t):
-	return (t * a) + ((1-t) * b)
 		
 def predict_loop(device, model):
     
+    ssd_model = SSD(min_distance = (300, 150), brake_intensity = 1.0)
+    line_detector = LineDetector()
     
     model.eval()
     
-    timer = FPSTimer()
 	
     pause=True
     return_was_down=False
@@ -80,6 +64,7 @@ def predict_loop(device, model):
     
     print('Ready')
 	
+    
     while True:
         i += 1
         if (win32api.GetAsyncKeyState(0x08)&0x8001 > 0):
@@ -122,11 +107,10 @@ def predict_loop(device, model):
             speed = 0.0
 
         sct_img = sct.grab(mon)
-        image = np.array(Image.frombytes('RGB', sct_img.size, sct_img.rgb))
-
-        mmap = preprocess.preprocess_mmap_predict(image)        
-        image = preprocess.preprocess_image_predict(image)
+        orig_image = np.array(Image.frombytes('RGB', sct_img.size, sct_img.rgb))
         
+        mmap = preprocess.preprocess_mmap_predict(orig_image)        
+        image = preprocess.preprocess_image_predict(orig_image)
            
 		
         pred1, pred2 = model(image.to(device), mmap.to(device), torch.tensor([speed]).to(device).unsqueeze(1))
@@ -134,11 +118,8 @@ def predict_loop(device, model):
         pred_brk = (torch.sigmoid(pred2.flatten()) > 0.5).to(dtype=torch.int32)
 
         steeringAngle = pred1[:, 0].cpu().detach().numpy()[0].item()
-        throttle = pred1[:, 1].cpu().detach().numpy()[0].item()
-        brake = pred_brk.cpu().detach().numpy()[0].item()
 
-        if(brake>0):
-            brake = 0.8
+        brake = 0.0
 
         #pred = model(image.to(device), mmap.to(device))
         
@@ -146,7 +127,30 @@ def predict_loop(device, model):
         #steeringAngle = pred[:, 0].cpu().detach().numpy()[0].item()
         #throttle = pred[:, 1].cpu().detach().numpy()[0].item()
         #brake = pred[:, 2].cpu().detach().numpy()[0].item()
-		
+        
+        if(speed >= 0.3):
+            throttle = 0.0
+        elif(speed < 0.3 and speed >= 0.2):
+            throttle = 0.3
+        elif(speed < 0.2 and speed >= 0.1):
+            throttle = 0.6
+        elif(speed < 0.1):
+            throttle = 0.8
+            
+        
+        #new_screen, _, mask = line_detector.process_img(orig_image)
+        
+        #steeringAngle = check_intersection(mask)
+        
+        prediction, labels, brake = ssd_model.forward(orig_image)
+        
+        new_screen = draw_bounding_boxes(torch.tensor(orig_image).permute(2,0,1), prediction["boxes"], labels).numpy()
+        
+        cv2.imshow('win1',cv2.cvtColor(np.moveaxis(new_screen, 0, 2), cv2.COLOR_BGR2RGB))
+
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            cv2.destroyAllWindows()
+            break
         
         j.data.wAxisX = int(vjoy_max * min(max(steeringAngle, 0), 1))
         j.data.wAxisY = int(vjoy_max * min(max(throttle, 0), 1))
@@ -160,8 +164,7 @@ def predict_loop(device, model):
         print("Brake: %.2f" % min(max(brake, 0), 1))
         print("Speed: %.2f" % speed)
 		
-        
-		#timer.on_frame()
+		
         
 
 if __name__ == "__main__":

@@ -25,8 +25,15 @@ if __name__ == '__main__':
     SCORE_FILE = 'history_score.pkl'
     
     
-    train_dataset = bf.GTADataset("data_tot.csv", DATA_ROOT_DIR, bf.preprocess, mmap=True)
-    test_dataset = bf.GTADataset("data_TEST.csv", DATA_ROOT_DIR, bf.test_preprocess, mmap=True)
+    if not os.path.exists(CKP_DIR):
+        os.makedirs(CKP_DIR)
+    
+    if not os.path.exists(SCORE_DIR):
+        os.makedirs(SCORE_DIR)
+    
+    train_dataset = bf.GTADataset("data_tot.csv", DATA_ROOT_DIR, augment=True, mmap=True)
+    
+    test_dataset = bf.GTADataset("data_TEST.csv", DATA_ROOT_DIR, mmap=True)
     
     train_dl = DataLoader(train_dataset, 
                             batch_size=512, 
@@ -38,16 +45,16 @@ if __name__ == '__main__':
                             num_workers=2)
     
 
-    mapnet = MapNet_v3(device = device).to(device) #qui inserire modello da trainare
-    mapnet.load_state_dict(torch.load(CKP_DIR+ "00050.pth"))
+    model = MapNet_v3().to(device) #qui inserire modello da trainare
+    #mapnet.load_state_dict(torch.load(CKP_DIR+ "00050.pth"))
     
     
-    trainer = Trainer(mapnet, 
+    trainer = Trainer(device, model, 
                       ckp_dir = CKP_DIR, 
                       score_dir = SCORE_DIR, 
                       score_file = SCORE_FILE)
     
-    """
+    
     trainer.train_model(train_dl,
                         max_epoch=100, 
                         steps_per_epoch=0,
@@ -57,30 +64,22 @@ if __name__ == '__main__':
                         ckp_save_step = 5,
                         ckp_epoch=0)
     
-    """
+    
     print('Starting test...')
-    sa_pred, acc_pred, brk_pred, sa_gt, acc_gt, brk_gt = trainer.test_model(test_dl)
+    sa_pred, sa_gt = trainer.test_model(test_dl)
     
     
     
-    figure, ax = plt.subplots(2,3, figsize=(20,10))
+    figure, ax = plt.subplots(2,1, figsize=(20,10))
     
-    ax[0, 0].plot(sa_pred[1:])
-    ax[0, 0].plot(sa_gt[1:], alpha=0.5)
-    
-    
-    ax[0, 1].plot(acc_pred[1:])
-    ax[0, 1].plot(acc_gt[1:], alpha=0.5)
-    
-    ax[0, 2].plot(brk_pred[1:])
-    ax[0, 2].plot(brk_gt[1:], alpha=0.5)
+    ax[0].plot(sa_pred[1:])
+    ax[0].plot(sa_gt[1:], alpha=0.5)
     
     
-    hs = bf.read_object(SCORE_DIR+"00055_history_score.pkl")
+    
+    hs = bf.read_object(SCORE_DIR+"00100_history_score.pkl")
 
-    ax[1, 0].plot(hs["MAE_sa_train"])
-    ax[1, 1].plot(hs["MAE_acc_train"])
-    ax[1, 2].plot(hs["MAE_brake_train"])
+    ax[1].plot(hs["MAE_sa_train"])
     
     
 #== Best Result ==

@@ -1,23 +1,20 @@
 from libraries import *
 import baseFunctions as bf
 from models.modules.general import *
-
     
-class MapNet_v8(nn.Module):
+class MapNet_v9(nn.Module):
 
     def __init__(self):
 
         super().__init__()
-        
-        
+
         #Image
-        self.conv1 = CONV_BLOCK(3, 64, 4, 2, "valid", 1)    #Bx64x110x110
-        self.conv2 = CONV_BLOCK(64, 128, 3, 1, "valid", 2)  #Bx128x54x54
-        self.conv3 = CONV_BLOCK(128, 256, 3, 1, "valid", 2) #Bx256x26x26
-        self.conv4 = CONV_BLOCK(256, 512, 2, 3, "valid", 1) #Bx512x9x9
-        self.conv5 = CONV_BLOCK(512, 512, 4, 1, "valid", 1) #Bx512x6x6
+        self.res_block1 = RES_BLOCK(3, 64, 5, 2, 4)     #Bx64x56x56
+        self.res_block2 = RES_BLOCK(64, 128, 3, 3, 3)   #Bx128x18x18
+        self.res_block3 = RES_BLOCK(128, 512, 3, 2, 3)  #Bx512x6x6
         
         self.flatten = nn.Flatten()
+        
         
         #MiniMap
         self.conv_map = MMAP_CONV() #8192
@@ -29,30 +26,25 @@ class MapNet_v8(nn.Module):
         
         self.mlp = MLP(in_dim = 4096, hidden_dims = [4096, 2048, 2048, 1024, 1024, 256, 32])
         
-
         self.head = nn.Linear(32, 1) #steering angle
 
 
 
     def forward(self, x_img, x_mmap, x_speed):
 
-        x_img = self.conv1(x_img)
-        x_img = self.conv2(x_img)
-        x_img = self.conv3(x_img)
-        x_img = self.conv4(x_img)
-        x_img = self.conv5(x_img)
-
+        x_img = self.res_block1(x_img)
+        x_img = self.res_block2(x_img)
+        x_img = self.res_block3(x_img)
         x_img = self.flatten(x_img)
         
         x_mmap = self.conv_map(x_mmap)
         
-    
-        x = torch.cat([x_img,x_mmap], 1)
+        x_img = torch.cat([x_img,x_mmap], 1)
         
-        x = self.n_linear_image(x)
+        x_img = self.n_linear_image(x_img)
         x_speed = self.n_linear_speed(x_speed)
         
-        x = torch.cat([x,x_speed], 1)
+        x = torch.cat([x_img,x_speed], 1)
         
         x = self.mlp(x)
 
@@ -62,6 +54,11 @@ class MapNet_v8(nn.Module):
 
     
     
+
+
+
+
+
 
 class Trainer():
     
@@ -220,3 +217,4 @@ class Trainer():
     
     def mae(self, pred, target):
         return torch.nn.functional.l1_loss(pred, target)
+    

@@ -8,151 +8,55 @@ class MapNet_v3(nn.Module):
 
         super().__init__()
 
-        self.device = device
-        
-        
-        #Image
-        self.conv1 = nn.Conv2d(3, 24, 5, 2, 0)
-        self.convlRelu1 = nn.ReLU()
-        self.batchNorm1 = nn.BatchNorm2d(24)
-        
-        self.conv2 = nn.Conv2d(24, 36, 5, 2, 0)
-        self.convlRelu2 = nn.ReLU()
-        self.batchNorm2 = nn.BatchNorm2d(36)
-        
-        self.conv3 = nn.Conv2d(36, 48, 5, 2, 0)
-        self.convlRelu3 = nn.ReLU()
-        self.batchNorm3 = nn.BatchNorm2d(48)
-        
-        
-        self.conv4 = nn.Conv2d(48, 64, 3, 1, 0)
-        self.convlRelu4 = nn.ReLU()
-        self.batchNorm4 = nn.BatchNorm2d(64)
-        
-        self.conv5 = nn.Conv2d(64, 64, 3, 1, 0)
-        self.convlRelu5 = nn.ReLU()
-        self.batchNorm5 = nn.BatchNorm2d(64)
-
         
         
         
+        self.conv1 = CONV_BLOCK(3, 24, 5, 2, "valid", 1)   #Bx24x110x110
+        self.conv2 = CONV_BLOCK(24, 36, 5, 2, "valid", 1)  #Bx24x53x53
+        self.conv3 = CONV_BLOCK(36, 48, 5, 2, "valid", 1)  #Bx24x25x25
         
-        
-        #MiniMap
-        self.conv1_map = nn.Conv2d(3, 24, 3, 2, 0)
-        self.convlRelu1_map = nn.ReLU()
-        self.batchNorm1_map = nn.BatchNorm2d(24)
-        
-        self.conv2_map = nn.Conv2d(24, 36, 3, 2, 0)
-        self.convlRelu2_map = nn.ReLU()
-        self.batchNorm2_map = nn.BatchNorm2d(36)
-        
-        
-        self.conv3_map = nn.Conv2d(36, 48, 3, 1, 0)
-        self.convlRelu3_map = nn.ReLU()
-        self.batchNorm3_map = nn.BatchNorm2d(48)
-        
-        self.conv4_map = nn.Conv2d(48, 64, 3, 1, 0)
-        self.convlRelu4_map = nn.ReLU()
-        self.batchNorm4_map = nn.BatchNorm2d(64)
-        
-        self.conv5_map = nn.Conv2d(64, 64, 3, 1, 0)
-        self.convlRelu5_map = nn.ReLU()
-        self.batchNorm5_map = nn.BatchNorm2d(64)
-        
-
+        self.conv4 = CONV_BLOCK(48, 64, 3, 2, "valid", 1)  #Bx24x23x23
+        self.conv5 = CONV_BLOCK(64, 64, 3, 2, "valid", 1)  #Bx24x21x21
         
         self.flatten = nn.Flatten()
+       
+        #MiniMap
+        self.conv_map = MMAP_CONV() #8192
         
         
-        self.linear1 = nn.Linear(42496, 2048)
-        self.relu1 = nn.ReLU()
-        self.batchNorm_linear1 = nn.BatchNorm1d(2048)
-        
-        self.linear2 = nn.Linear(2048, 1024)
-        self.relu2 = nn.ReLU()
-        self.batchNorm_linear2 = nn.BatchNorm1d(1024)
-        
-        self.linear3 = nn.Linear(1024, 512)
-        self.relu3 = nn.ReLU()
-        self.batchNorm_linear3 = nn.BatchNorm1d(512)
-        
-        self.linear4 = nn.Linear(512, 256)
-        self.relu4 = nn.ReLU()
-        self.batchNorm_linear4 = nn.BatchNorm1d(256)
-        
-        self.linear5 = nn.Linear(256, 128)
-        self.relu5 = nn.ReLU()
-        self.batchNorm_linear5 = nn.BatchNorm1d(128)
-        
-        self.linear6 = nn.Linear(128, 64)
-        self.relu6 = nn.ReLU()
-        self.batchNorm_linear6 = nn.BatchNorm1d(64)
-        
-        self.linear7 = nn.Linear(64, 32)
-        self.relu7 = nn.ReLU()
-        self.batchNorm_linear7 = nn.BatchNorm1d(32)
+        self.mlp = MLP(in_dim = 36416, hidden_dims = [4096, 1024, 32])
 
-        self.linear8 = nn.Linear(32, 3) #steering angle, acceleration, brake
+        self.head = nn.Linear(32, 1) #steering angle
 
 
 
 
     def forward(self, x_img, x_mmap):
 
-        x_img = self.batchNorm1(self.convlRelu1(self.conv1(x_img)))
-        x_img = self.batchNorm2(self.convlRelu2(self.conv2(x_img)))
-        x_img = self.batchNorm3(self.convlRelu3(self.conv3(x_img)))
-
-        x_img = self.batchNorm4(self.convlRelu4(self.conv4(x_img)))
-        x_img = self.batchNorm5(self.convlRelu5(self.conv5(x_img)))
+        x_img = self.conv1(x_img)
+        x_img = self.conv2(x_img)
+        x_img = self.conv3(x_img)
+        x_img = self.conv4(x_img)
+        x_img = self.conv5(x_img)
         
         x_img = self.flatten(x_img)
         
-        
-        x_mmap = self.batchNorm1_map(self.convlRelu1_map(self.conv1_map(x_mmap)))
-        x_mmap = self.batchNorm2_map(self.convlRelu2_map(self.conv2_map(x_mmap)))
-        x_mmap = self.batchNorm3_map(self.convlRelu3_map(self.conv3_map(x_mmap)))
-
-        x_mmap = self.batchNorm4_map(self.convlRelu4_map(self.conv4_map(x_mmap)))
-        x_mmap = self.batchNorm5_map(self.convlRelu5_map(self.conv5_map(x_mmap)))
-
-        x_mmap = self.flatten(x_mmap)
-        
+        x_mmap = self.conv_map(x_mmap)
         
         x = torch.cat([x_img,x_mmap], 1)
         
-        x = self.batchNorm_linear1(self.relu1(self.linear1(x)))
-        x = self.batchNorm_linear2(self.relu2(self.linear2(x)))
-        x = self.batchNorm_linear3(self.relu3(self.linear3(x)))
-        x = self.batchNorm_linear4(self.relu4(self.linear4(x)))
-        x = self.batchNorm_linear5(self.relu5(self.linear5(x)))
-        x = self.batchNorm_linear6(self.relu6(self.linear6(x)))
-        x = self.batchNorm_linear7(self.relu7(self.linear7(x)))
-        
-        x = self.linear8(x)
+        x = self.mlp(x)
 
-        return x
+        return self.head(x)
      
+
     
     
-    def loss(self, pred, target):
-        return torch.nn.functional.mse_loss(pred, target)
-    
-    def MeanAbsoluteError(self, pred, target):
-        return torch.nn.functional.l1_loss(pred, target)
-    
-    
-
-
-
-
-
-
 class Trainer():
     
-    def __init__(self, model, ckp_dir = "", score_dir = "", score_file = "score.pkl"):
+    def __init__(self, device, model, ckp_dir = "", score_dir = "", score_file = "score.pkl"):
         self.model = model
+        self.device = device
         self.ckp_dir = ckp_dir
         self.score_dir= score_dir
         self.score_file = score_file
@@ -186,8 +90,8 @@ class Trainer():
             history_score = defaultdict(list)
             
        
-        scheduler1 = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=2, verbose=True)  # goal: maximize loss
-        scheduler2 = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=2, verbose=True)  # goal: maximize mae
+        scheduler1 = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=2, verbose=True)  # goal: minimize loss
+        scheduler2 = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=2, verbose=True)  # goal: minimize mae
             
         torch.backends.cudnn.benchmark = True
         
@@ -210,57 +114,41 @@ class Trainer():
 
             train_tot_loss = 0
             mae_sa=0
-            mae_acc=0
-            mae_brk=0
 
             for id_b, batch in tqdm(enumerate(self.data), total=steps_per_epoch):
                 
                 optim.zero_grad()
 
                 
-                pred = self.model(batch["img"].to(self.model.device), batch["mmap"].to(self.model.device))                  
+                pred = self.model(batch["img"].to(self.device), batch["mmap"].to(self.device))                  
 
-                gt_steeringAngle = batch["statistics"][:,0].to(self.model.device)
-                gt_acceleration = batch["statistics"][:,1].to(self.model.device)
-                gt_brake = batch["statistics"][:,2].to(self.model.device)
+                gt_steeringAngle = batch["statistics"][:,0].to(self.device)
 
-                loss1 = self.model.loss(pred[:,0].reshape(-1), gt_steeringAngle)
-                
-                loss2 = self.model.loss(pred[:,1].reshape(-1), gt_acceleration)
-                
-                loss3 = self.model.loss(pred[:,2].reshape(-1), gt_brake)
-                
-                loss = loss1 + loss2+ loss3
+                loss = self.mse_loss(pred.reshape(-1), gt_steeringAngle)
                 
                 with torch.no_grad():
                     train_tot_loss += loss
-                    mae_sa += self.model.MeanAbsoluteError(pred[:,0].reshape(-1), gt_steeringAngle)
-                    mae_acc += self.model.MeanAbsoluteError(pred[:,1].reshape(-1), gt_acceleration)
-                    mae_brk += self.model.MeanAbsoluteError(pred[:,2].reshape(-1), gt_brake)
+                    mae_sa += self.mae(pred.reshape(-1), gt_steeringAngle)
 
                 loss.backward()
                 optim.step()
 
                 
                 
-                if(steps_per_epoch == id_b):
+                if(steps_per_epoch == id_b+1):
                     break
             
                 
-            #if(scheduler.get_last_lr()[0] > lr_cap):
-             #   scheduler.step()
             
             scheduler1.step(train_tot_loss)
-            scheduler2.step(mae_sa+mae_acc+mae_brk)
+            scheduler2.step(mae_sa)
 
             if (epoch+1) % log_step == 0:
-                print('Total Train Loss: %7.4f --- MAE SA: %7.4f --- MAE Acc: %7.4f --- MAE brk: %7.4f' % (train_tot_loss/steps_per_epoch, mae_sa/steps_per_epoch, mae_acc/steps_per_epoch, mae_brk/steps_per_epoch))
+                print('Total Train Loss: %7.10f --- MAE SA: %7.6f' % (train_tot_loss/steps_per_epoch, mae_sa/steps_per_epoch))
 
 
             history_score['loss_tot_train'].append((train_tot_loss/steps_per_epoch).item())
             history_score['MAE_sa_train'].append((mae_sa/steps_per_epoch).item())
-            history_score['MAE_acc_train'].append((mae_acc/steps_per_epoch).item())
-            history_score['MAE_brake_train'].append((mae_brk/steps_per_epoch).item())
 
 
             # Here we save checkpoints to avoid repeated training
@@ -287,54 +175,41 @@ class Trainer():
         
         test_tot_loss=0
         mae_sa=0
-        mae_acc=0
-        mae_brk=0
-        
         sa_preds = np.array([0])
-        acc_preds = np.array([0])
-        brk_preds = np.array([0])
-        
         sa_gt = np.array([0])
-        acc_gt = np.array([0])
-        brk_gt = np.array([0])
+
         
         for id_b, batch in tqdm(enumerate(test_data), total=len(test_data)):
             
 
             with torch.no_grad():
                 
-                pred = self.model(batch["img"].to(self.model.device), batch["mmap"].to(self.model.device))                  
+                pred = self.model(batch["img"].to(self.device), batch["mmap"].to(self.device), batch["speed"].to(self.device).unsqueeze(1))                     
 
-                gt_steeringAngle = batch["statistics"][:,0].to(self.model.device)
-                gt_acceleration = batch["statistics"][:,1].to(self.model.device)
-                gt_brake = batch["statistics"][:,2].to(self.model.device)
+                gt_steeringAngle = batch["statistics"][:,0].to(self.device)
 
-                loss1 = self.model.loss(pred[:,0].reshape(-1), gt_steeringAngle)
-                
-                loss2 = self.model.loss(pred[:,1].reshape(-1), gt_acceleration)
-                
-                loss3 = self.model.loss(pred[:,2].reshape(-1), gt_brake)
-                
-                loss = loss1 + loss2+ loss3
-                
+                loss = self.mse_loss(pred.reshape(-1), gt_steeringAngle)
                 
                 
                 test_tot_loss += loss
-                mae_sa += self.model.MeanAbsoluteError(pred[:,0].reshape(-1), gt_steeringAngle)
-                mae_acc += self.model.MeanAbsoluteError(pred[:,1].reshape(-1), gt_acceleration)
-                mae_brk += self.model.MeanAbsoluteError(pred[:,2].reshape(-1), gt_brake)
-                
-                
-                
+                mae_sa += self.mae(pred.reshape(-1), gt_steeringAngle)
+                     
                 sa_preds = np.concatenate([sa_preds, pred[:,0].cpu().numpy().flatten()])
-                acc_preds = np.concatenate([acc_preds, pred[:,1].cpu().numpy().flatten()])
-                brk_preds = np.concatenate([brk_preds, pred[:,2].cpu().numpy().flatten()])
-                
                 sa_gt = np.concatenate([sa_gt, gt_steeringAngle.cpu().numpy().flatten()])
-                acc_gt = np.concatenate([acc_gt, gt_acceleration.cpu().numpy().flatten()])
-                brk_gt = np.concatenate([brk_gt, gt_brake.cpu().numpy().flatten()])
+
                 
                 
-        print('Total Test Loss: %7.4f --- MAE SA: %7.4f --- MAE Acc: %7.4f --- MAE brk: %7.4f' % (test_tot_loss/len(test_data), mae_sa/len(test_data), mae_acc/len(test_data), mae_brk/len(test_data)))
+        print('Total Test Loss: %7.10f --- MAE SA: %7.6f' % (test_tot_loss/len(test_data), mae_sa/len(test_data)))
                 
-        return sa_preds, acc_preds, brk_preds, sa_gt, acc_gt, brk_gt
+        return sa_preds, sa_gt
+    
+    
+    def mse_loss(self, pred, target):
+        return torch.nn.functional.mse_loss(pred, target)
+    
+    def mae(self, pred, target):
+        return torch.nn.functional.l1_loss(pred, target)
+
+
+
+

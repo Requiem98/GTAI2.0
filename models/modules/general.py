@@ -2,6 +2,53 @@ from libraries import *
 import baseFunctions as bf
 
 
+class CONV_BLOCK(nn.Module):
+     def __init__(self, in_dim, out_dim, kernel, stride, padding, pool):
+         super().__init__()
+         
+         self.conv = nn.Conv2d(in_dim, out_dim, kernel, stride, padding)
+         self.batchNorm = nn.BatchNorm2d(out_dim)
+         self.relu = nn.ReLU()
+         
+         self.pool = nn.MaxPool2d(pool, pool)
+         
+     def forward(self, x):
+         x = self.relu(self.batchNorm(self.conv(x)))
+         return self.pool(x)
+
+
+class RES_BLOCK(nn.Module):
+    def __init__(self, in_dim, out_dim, kernel, num_conv, pool):
+        super().__init__()
+        
+        layers = list()
+        
+        for i in range(num_conv):
+            d_in = in_dim if i == 0 else out_dim
+            layers.append(nn.Conv2d(d_in, out_dim, kernel, 1, "same"))
+            layers.append(nn.BatchNorm2d(out_dim))
+            layers.append(nn.ReLU())
+            
+        self.net = nn.Sequential(*layers)
+        
+        self.finalConv2d = nn.Conv2d(out_dim, out_dim, kernel, 1, "same")
+        self.finalBN = nn.BatchNorm2d(out_dim)
+        self.relu = nn.ReLU()
+        
+        
+        self.conv11 = nn.Conv2d(in_dim, out_dim, 1, 1, "same")
+        
+        self.pool = nn.MaxPool2d(pool, pool)
+        
+    def forward(self, x):
+        h = self.net(x)
+        
+        h = self.finalBN(self.finalConv2d(h))
+        
+        x = self.relu(h+self.conv11(x))
+        
+        return self.pool(x)
+
 class MMAP_CONV(nn.Module):
     def __init__(self):
         super().__init__()

@@ -97,4 +97,4 @@ if __name__ == '__main__':
 #== Best Result ==
 #Total Test Loss: 1.5395251513 --- MAE SA: 0.041241 --- MAE Acc: 0.161522 --- Recall brk: 0.025774 # epoch 50
 #Total Test Loss: 1.2924324274 --- MAE SA: 0.038663 --- MAE Acc: 0.153047 --- Recall brk: 0.025332 # epoch 100
-
+#Total Test Loss: 1.3964891434 --- MAE SA: 0.043396 --- MAE Acc: 0.156967 --- Recall brk: 0.036304 # epoch 150 +data

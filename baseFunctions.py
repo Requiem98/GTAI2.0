@@ -133,7 +133,7 @@ class GTADataset(Dataset):
     def __init__(self, csv_file, root_dir, augment=False, mmap=False, img_dir="./Data/gta_data/"):
 
         self.data = pd.read_csv(root_dir + csv_file, index_col=0, sep=",")
-        self.data = quantized_stat(self.data)
+        #self.data = quantized_stat(self.data)
         self.root_dir = root_dir
         self.img_dir = img_dir
         self.augment = augment
@@ -192,19 +192,17 @@ class GTADataset(Dataset):
         statistics = np.array(statistics, dtype=np.float32)
         statistics = torch.tensor(statistics, dtype=torch.float32)
         
-        brake = torch.tensor(self.data.iloc[idx, 5], dtype=torch.int32)
-        
         speed = self.data.iloc[idx, 3]/self.data["speed"].max()
         speed = np.array(speed, dtype=np.float32)
         speed = torch.tensor(speed, dtype=torch.float32)
     
 
         if(self.mmap):
-            sample = {'img': images, 'mmap': mmaps, 'speed': speed, 'statistics': statistics, "brake": brake}
+            sample = {'img': images, 'mmap': mmaps, 'speed': speed, 'statistics': statistics}
             return sample
             
             
-        sample = {'img': images, 'speed': speed, 'statistics': statistics, "brake": brake}
+        sample = {'img': images, 'speed': speed, 'statistics': statistics}
 
         return sample
     

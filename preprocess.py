@@ -81,6 +81,12 @@ data_test["steering_angle"].plot()
 
 data_test.to_csv("./Data/gta_data/data_TEST.csv")
 
+#=============================== Sampled dataset ==============================
+data = pd.read_csv("./Data/gta_data/data_tot.csv", index_col=0)
+data = data.sample(frac=1/3)
+
+data.to_csv("./Data/gta_data/data_tot_sampled.csv")
+
 #=============================== Segmentation dataset ============================
 
 
