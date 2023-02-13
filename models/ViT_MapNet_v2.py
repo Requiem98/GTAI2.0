@@ -1,6 +1,7 @@
 from libraries import *
 import baseFunctions as bf
 from models.modules.general import *
+from models.modules.ViT import ViT
 
 
         

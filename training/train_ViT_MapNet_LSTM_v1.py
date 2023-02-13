@@ -66,7 +66,7 @@ if __name__ == '__main__':
     model = ViT_MapNet_LSTM_v1(num_sequences=10, num_timestep=10).to(device) #qui inserire modello da trainare
     #model.load_state_dict(torch.load(CKP_DIR+ "00100.pth"))
     
-    trainer = Trainer(model, 
+    trainer = Trainer(device, model, 
                       ckp_dir = CKP_DIR, 
                       score_dir = SCORE_DIR, 
                       score_file = SCORE_FILE)
