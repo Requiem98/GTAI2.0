@@ -112,10 +112,29 @@ class PREPROCESS:
         return mmap
     
     def preprocess_segment(self, image):
+        image = image[400:900]
         image = F.to_pil_image(image)
         image = F.resize(image, (224,224))
         image = F.to_tensor(image)
         return image
+    
+    def preprocess_mask(self, mask):
+        mask = mask[400:900]
+        mask = F.to_pil_image(mask)
+        mask = F.resize(mask, (224,224))
+        mask = torch.tensor(np.array(mask), dtype=torch.int64)
+        #remove not usefull classes
+        mask[((mask != 7) & (mask != 24) & (mask != 26) & (mask != 28) & (mask != 32) & (mask != 33))] = 0
+        
+        mask[(mask == 7)] = 1
+        mask[(mask == 24)] = 2
+        mask[(mask == 26)] = 3
+        mask[(mask == 28)] = 4
+        mask[(mask == 32)] = 5
+        mask[(mask == 33)] = 6
+        
+        
+        return mask
     
     def preprocess_image_predict(self, image):
         return self.preprocess_image(image).unsqueeze(0)
@@ -246,12 +265,12 @@ def dice_loss(input: Tensor, target: Tensor, multiclass: bool = False):
 
 class GTA_segment_Dataset(Dataset):
 
-    def __init__(self, csv_file, root_dir, transform=None, img_dir=""):
+    def __init__(self, csv_file, root_dir, img_dir=""):
 
         self.data_csv = pd.read_csv(root_dir + csv_file, index_col=0)
         self.root_dir = root_dir
         self.img_dir = img_dir
-        self.transform = transform
+        self.preprocess = PREPROCESS()
     
 
     def __len__(self):
@@ -274,10 +293,7 @@ class GTA_segment_Dataset(Dataset):
             
             image = io.imread(im_name)
         
-            image = image[400:900]
-        
-            if self.transform:
-                image = self.transform(image)
+            image = self.preprocess.preprocess_segment(image)
         
             images.append(image)
         
@@ -299,22 +315,8 @@ class GTA_segment_Dataset(Dataset):
             
             mask = np.array(Image.open(mask_name))
         
-            mask = mask[400:900]
-        
-            if self.transform:
-                mask = F.to_pil_image(mask)
-                mask = F.resize(mask, (140,400))
-                mask = torch.tensor(np.array(mask), dtype=torch.int64)
-                #remove not usefull classes
-                mask[((mask != 7) & (mask != 24) & (mask != 26) & (mask != 28) & (mask != 32) & (mask != 33))] = 0
-                
-                mask[(mask == 7)] = 1
-                mask[(mask == 24)] = 2
-                mask[(mask == 26)] = 3
-                mask[(mask == 28)] = 4
-                mask[(mask == 32)] = 5
-                mask[(mask == 33)] = 6
-        
+            mask = self.preprocess.preprocess_mask(mask)
+
             masks.append(mask)
         
         if(len(mask_names)>1):

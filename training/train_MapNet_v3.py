@@ -46,7 +46,7 @@ if __name__ == '__main__':
     
 
     model = MapNet_v3().to(device) #qui inserire modello da trainare
-    #mapnet.load_state_dict(torch.load(CKP_DIR+ "00050.pth"))
+    model.load_state_dict(torch.load(CKP_DIR+ "00010.pth"))
     
     
     trainer = Trainer(device, model, 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
                       score_dir = SCORE_DIR, 
                       score_file = SCORE_FILE)
     
-    
+    """
     trainer.train_model(train_dl,
                         max_epoch=1, 
                         steps_per_epoch=1,
@@ -63,7 +63,7 @@ if __name__ == '__main__':
                         log_step=1, 
                         ckp_save_step = 5,
                         ckp_epoch=0)
-    
+    """
     
     print('Starting test...')
     sa_pred, sa_gt = trainer.test_model(test_dl)
@@ -77,13 +77,16 @@ if __name__ == '__main__':
     
     
     
-    hs = bf.read_object(SCORE_DIR+"00100_history_score.pkl")
+    hs = bf.read_object(SCORE_DIR+"00010_history_score.pkl")
 
     ax[1].plot(hs["MAE_sa_train"])
     
-    
+
+#== lasts epoch results (train) ==
+#Total Train Loss: 0.0010056252 --- MAE SA: 0.023171 #epoch 10
+
 #== Best Result ==
-#Total Test Loss:  0.0651 --- MAE SA:  0.0256 --- MAE Acc:  0.1542
+#Total Test Loss: 0.0029799272 --- MAE SA: 0.035191 #epoch 10
 
     
 

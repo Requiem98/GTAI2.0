@@ -37,18 +37,18 @@ if __name__ == '__main__':
     #test_dataset = bf.GTADataset("temp.csv", DATA_ROOT_DIR, bf.test_preprocess, mmap=True)
     
     train_dl = DataLoader(train_dataset, 
-                            batch_size=512, 
+                            batch_size=64, 
                             shuffle=True,
                             num_workers=10)
     
     test_dl = DataLoader(test_dataset, 
-                            batch_size=512, 
+                            batch_size=64, 
                             num_workers=0)
     
 
 
     model = MapNet_v8().to(device) #qui inserire modello da trainare
-    model.load_state_dict(torch.load(CKP_DIR+ "00025.pth"))
+    #model.load_state_dict(torch.load(CKP_DIR+ "00010.pth"))
     
     trainer = Trainer(device, model, 
                       ckp_dir = CKP_DIR, 
@@ -57,13 +57,13 @@ if __name__ == '__main__':
     
     
     trainer.train_model(train_dl,
-                        max_epoch=50, 
+                        max_epoch=40, 
                         steps_per_epoch=0,
-                        lr=0.001,
+                        lr=0.01,
                         weight_decay=0,
                         log_step=1, 
                         ckp_save_step = 5,
-                        ckp_epoch=0)
+                        ckp_epoch=10)
     
     
     print('Starting test...')
@@ -77,14 +77,14 @@ if __name__ == '__main__':
     ax[0].plot(sa_gt[1:], alpha=0.5)
     
     
-    hs = bf.read_object(SCORE_DIR+"00050_history_score.pkl")
+    hs = bf.read_object(SCORE_DIR+"00010_history_score.pkl")
 
     ax[1].plot(hs["MAE_sa_train"])
 
     
 
 #== lasts epoch results (train) ==
-#Total Train Loss: 0.0031270436 --- MAE SA: 0.030678 --- MAE Acc: 0.127504 --- Recall brk: 0.875765 # epoch 50
+#Total Train Loss: 0.0004319476 --- MAE SA: 0.014999 # epoch 10
 
 #== Best Result ==
-#Total Test Loss: 0.0528299138 --- MAE SA: 0.048327 --- MAE Acc: 0.161320 --- Recall brk: 0.335000 # epoch 50
+#Total Test Loss: 0.0030930191 --- MAE SA: 0.042350 # epoch 10

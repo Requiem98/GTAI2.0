@@ -8,6 +8,7 @@ from torch import nn
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as T
 from torchvision.transforms import functional as F
+import torch.nn.functional as f
 try:
     import pickle5 as pickle
 except:
@@ -27,5 +28,6 @@ from sklearn.model_selection import train_test_split
 import warnings
 import sys
 import torchmetrics
+from torchmetrics.classification import MulticlassJaccardIndex
 
 DATA_ROOT_DIR = "./Data/gta_data/"

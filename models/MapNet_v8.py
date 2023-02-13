@@ -101,8 +101,7 @@ class Trainer():
             history_score = defaultdict(list)
             
        
-        scheduler1 = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=2, verbose=True)  # goal: minimize loss
-        scheduler2 = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=2, verbose=True)  # goal: minimize mae
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=3, verbose=True)
             
         torch.backends.cudnn.benchmark = True
         
@@ -151,8 +150,7 @@ class Trainer():
             
                 
             
-            scheduler1.step(train_tot_loss)
-            scheduler2.step(mae_sa)
+            scheduler1.step(train_tot_loss+mae_sa)
 
             if (epoch+1) % log_step == 0:
                 print('Total Train Loss: %7.10f --- MAE SA: %7.6f' % (train_tot_loss/steps_per_epoch, mae_sa/steps_per_epoch))

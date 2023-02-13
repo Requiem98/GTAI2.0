@@ -75,7 +75,7 @@ if __name__ == '__main__':
     trainer.train_model(train_dl,
                         max_epoch=50, 
                         steps_per_epoch=0,
-                        lr=0.001,
+                        lr=0.01,
                         weight_decay=0,
                         log_step=1, 
                         ckp_save_step = 5,
@@ -83,28 +83,19 @@ if __name__ == '__main__':
     
     
     print('Starting test...')
-    sa_pred, acc_pred, brk_pred, sa_gt, acc_gt, brk_gt = trainer.test_model(test_dl)
+    sa_pred, sa_gt = trainer.test_model(test_dl)
     
     
     
-    figure, ax = plt.subplots(2,3, figsize=(20,10))
+    figure, ax = plt.subplots(2,1, figsize=(20,10))
     
-    ax[0, 0].plot(sa_pred[1:])
-    ax[0, 0].plot(sa_gt[1:], alpha=0.5)
-    
-    
-    ax[0, 1].plot(acc_pred[1:])
-    ax[0, 1].plot(acc_gt[1:], alpha=0.5)
-    
-    ax[0, 2].plot(brk_pred[1:])
-    ax[0, 2].plot(brk_gt[1:], alpha=0.5)
+    ax[0].plot(sa_pred[1:])
+    ax[0].plot(sa_gt[1:], alpha=0.5)
     
     
     hs = bf.read_object(SCORE_DIR+"00050_history_score.pkl")
 
-    ax[1, 0].plot(hs["MAE_sa_train"])
-    ax[1, 1].plot(hs["MAE_acc_train"])
-    ax[1, 2].plot(hs["Recall_brake_train"])
+    ax[1].plot(hs["MAE_sa_train"])
     
 
 #== lasts epoch results (train) ==
