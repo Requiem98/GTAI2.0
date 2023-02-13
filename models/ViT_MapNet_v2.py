@@ -1,20 +1,16 @@
 from libraries import *
 import baseFunctions as bf
-from models.modules.ViT import ViT
 from models.modules.general import *
-
 
 
         
 
-class ViT_MapNet_LSTM_v1(nn.Module):
+class ViT_MapNet_v2(nn.Module):
 
-    def __init__(self, num_sequences, num_timestep):
+    def __init__(self):
 
         super().__init__()
-
-        self.num_sequences = num_sequences
-        self.num_timestep = num_timestep
+        
         
         
         #===========================
@@ -38,12 +34,13 @@ class ViT_MapNet_LSTM_v1(nn.Module):
         
         
         #===========================
-        #========= LSTM ============
+        #=========  MLP ============
         #===========================
         
-        self.lstm = nn.LSTM(input_size = 32817, hidden_size = 256, num_layers = 2, dropout = 0.1)
+
         
-        self.mlp = MLP(256, [128, 64, 32])
+        self.mlp = MLP(32817, [4096, 1024, 512, 256, 64, 32])
+        
 
         self.head = nn.Linear(32, 1) #steering angle
 
@@ -54,34 +51,18 @@ class ViT_MapNet_LSTM_v1(nn.Module):
         x_img = self.flat(self.relu(self.linear(self.vit(x_img, x_speed)))) #Bx24625
         
         x_mmap = self.conv_map(x_mmap) #Bx8192
-        
-        x = self._process_features(x_img, x_mmap)
-        
-        x, _ = self.lstm(x) #(S,B,D)
-        
-        x = x[-1]     #(B, D)
+
+        x = torch.cat([x_img,x_mmap], 1) #Bx32817
         
         x = self.mlp(x)
-           
+        
 
         return self.head(x)
-    
-    def _process_features(self, x_img, x_mmap):
-        
-        x = torch.cat([x_img, x_mmap], axis = 1) #Bx(8192+24625) = Bx32817
-    
-        x = x.reshape(self.num_timestep, self.num_sequences, x.shape[1]) #(S, B, D)
-        
-        return x
-        
-        
-    
+     
     
 
-
-
-
-
+    
+    
 
 class Trainer():
     
@@ -121,7 +102,7 @@ class Trainer():
             history_score = defaultdict(list)
             
        
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=3, verbose=True, threshold = 1e-5, min_lr = 1e-8)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=3, verbose=True)
             
         torch.backends.cudnn.benchmark = True
         
@@ -152,10 +133,9 @@ class Trainer():
                 
                 pred = self.model(batch["img"].to(self.device), batch["mmap"].to(self.device), batch["speed"].to(self.device).unsqueeze(1))                  
 
-                gt_steeringAngle = batch["statistics"][9::10,0].to(self.device)
+                gt_steeringAngle = batch["statistics"][:,0].to(self.device)
 
                 loss = self.mse_loss(pred.reshape(-1), gt_steeringAngle)
-                
                 
                 with torch.no_grad():
                     train_tot_loss += loss
@@ -205,9 +185,9 @@ class Trainer():
         
         test_tot_loss=0
         mae_sa=0
-        
         sa_preds = np.array([0])
         sa_gt = np.array([0])
+
         
         for id_b, batch in tqdm(enumerate(test_data), total=len(test_data)):
             
@@ -216,19 +196,17 @@ class Trainer():
                 
                 pred = self.model(batch["img"].to(self.device), batch["mmap"].to(self.device), batch["speed"].to(self.device).unsqueeze(1))                     
 
-                gt_steeringAngle = batch["statistics"][9::10,0].to(self.device)
+                gt_steeringAngle = batch["statistics"][:,0].to(self.device)
 
                 loss = self.mse_loss(pred.reshape(-1), gt_steeringAngle)
                 
                 
-                
                 test_tot_loss += loss
                 mae_sa += self.mae(pred.reshape(-1), gt_steeringAngle)
-                
-                
+                     
                 sa_preds = np.concatenate([sa_preds, pred[:,0].cpu().numpy().flatten()])
-                
                 sa_gt = np.concatenate([sa_gt, gt_steeringAngle.cpu().numpy().flatten()])
+
                 
                 
         print('Total Test Loss: %7.10f --- MAE SA: %7.6f' % (test_tot_loss/len(test_data), mae_sa/len(test_data)))
@@ -241,4 +219,3 @@ class Trainer():
     
     def mae(self, pred, target):
         return torch.nn.functional.l1_loss(pred, target)
-    

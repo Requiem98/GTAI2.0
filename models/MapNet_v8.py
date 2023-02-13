@@ -150,7 +150,7 @@ class Trainer():
             
                 
             
-            scheduler1.step(train_tot_loss+mae_sa)
+            scheduler.step(train_tot_loss+mae_sa)
 
             if (epoch+1) % log_step == 0:
                 print('Total Train Loss: %7.10f --- MAE SA: %7.6f' % (train_tot_loss/steps_per_epoch, mae_sa/steps_per_epoch))
