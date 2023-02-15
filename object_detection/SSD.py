@@ -46,7 +46,11 @@ class SSD:
                 
                 if((d > self.min_distance[0]) and (l == 3 or l == 8)):
                     brake = self.brake_intensity
+<<<<<<< HEAD
                 elif((d > self.min_distance[1]) and (l != 3 and l != 8)):
+=======
+                elif((d > self.min_distance[1]) and (l != 3 and l != 8))
+>>>>>>> 1e5b878eb15a18030a64a31772161c9a7ef6ed50
                     brake = self.brake_intensity
                     
             except KeyError as e:

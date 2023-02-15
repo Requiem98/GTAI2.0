@@ -57,13 +57,13 @@ if __name__ == '__main__':
     
     
     trainer.train_model(train_dl,
-                        max_epoch=100, 
+                        max_epoch=20, 
                         steps_per_epoch=0,
                         lr=0.01,
                         weight_decay=0,
                         log_step=1, 
                         ckp_save_step = 5,
-                        ckp_epoch=0)
+                        ckp_epoch=80)
     
     
     print('Starting test...')
@@ -82,7 +82,8 @@ if __name__ == '__main__':
     
 
 #== lasts epoch results (train) ==
-#Total Train Loss: 0.0008571566 --- MAE SA: 0.021950 epoch 100
+#Total Train Loss: 0.0006219432 --- MAE SA: 0.018527 epoch 50
+
 
 #== Best Result ==
-#Total Test Loss: 0.0056090732 --- MAE SA: 0.048681 epoch 100
+

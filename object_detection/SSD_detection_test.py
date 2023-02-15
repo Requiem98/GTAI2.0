@@ -26,7 +26,11 @@ left = int((2560 - 800)/2)
 top = int((1440 - 600)/2)
 
 cv2.namedWindow("win1");
+<<<<<<< HEAD
 cv2.moveWindow("win1", 75,top-40);
+=======
+cv2.moveWindow("win1", 0,0);
+>>>>>>> 1e5b878eb15a18030a64a31772161c9a7ef6ed50
 
 last_time = time.time()
 while True:
@@ -65,7 +69,11 @@ while True:
             labels.append(f"{l} :: {round(s, 2)} :: {d}")
     
     
+<<<<<<< HEAD
     new_screen = draw_bounding_boxes(torch.tensor(screen).permute(2,0,1), predictions[0]["boxes"], labels, colors = "red", width = 4).numpy()
+=======
+    new_screen = draw_bounding_boxes(torch.tensor(screen).permute(2,0,1), predictions[0]["boxes"], labels).numpy()
+>>>>>>> 1e5b878eb15a18030a64a31772161c9a7ef6ed50
     
 
     

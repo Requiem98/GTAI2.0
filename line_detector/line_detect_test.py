@@ -129,10 +129,14 @@ left = int((2560 - 800)/2)
 top = int((1440 - 600)/2)
 
 cv2.namedWindow("win1");
+<<<<<<< HEAD
 cv2.moveWindow("win1", 75,top-40);
 
 cv2.namedWindow("win2");
 cv2.moveWindow("win2", left+795,top-40);
+=======
+cv2.moveWindow("win1", 0,0);
+>>>>>>> 1e5b878eb15a18030a64a31772161c9a7ef6ed50
 
 last_time = time.time()
 while True:
@@ -145,10 +149,17 @@ while True:
     cv2.line(new_screen, (300, 600), (300, 480), [0,0,255], 6)
     cv2.line(new_screen, (500, 600), (500, 480), [0,0,255], 6)
     
+<<<<<<< HEAD
     #check_intersection(mask)
 
     
     cv2.imshow('win2', canny_image)
+=======
+    check_intersection(mask)
+
+    
+    #cv2.imshow('win1', canny_image)
+>>>>>>> 1e5b878eb15a18030a64a31772161c9a7ef6ed50
     cv2.imshow('win1',cv2.cvtColor(new_screen, cv2.COLOR_BGR2RGB))
 
     if cv2.waitKey(25) & 0xFF == ord('q'):
