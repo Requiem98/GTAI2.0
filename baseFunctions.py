@@ -42,6 +42,16 @@ def cap_hist(data, k, category = "steering_angle"):
     return new_data
 
 
+def reuse_weights(path, model):
+    weights = torch.load(path)
+    model_dict = model.state_dict()
+    
+    final_weights = { k:v for k,v in weights.items() if k in model_dict and model_dict[k].shape == v.shape}
+    
+    model.load_state_dict(final_weights, strict=False)
+    return model
+
+
 def quantized_stat(data, category = "brake", bins=[-0.1, 0.001, 1]):
     
     new_data = data.copy()

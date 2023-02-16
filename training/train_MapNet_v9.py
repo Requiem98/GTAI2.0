@@ -1,6 +1,6 @@
 from libraries import *
 import baseFunctions as bf
-from Models.Dnet_v2 import *
+from Models.MapNet_v9 import *
 
 
 
@@ -20,8 +20,8 @@ if __name__ == '__main__':
     
     #Path per i salvataggi dei checkpoints
     #SINTASSI: ./Data/models/NOME_MODELLO/etc...
-    CKP_DIR = "./Data/Models/Dnet_v2/checkpoint/"
-    SCORE_DIR = "./Data/Models/Dnet_v2/scores/"
+    CKP_DIR = "./Data/models/MapNet_v9/checkpoint/"
+    SCORE_DIR = "./Data/models/MapNet_v9/scores/"
     SCORE_FILE = 'history_score.pkl'
     
     
@@ -31,10 +31,10 @@ if __name__ == '__main__':
     if not os.path.exists(SCORE_DIR):
         os.makedirs(SCORE_DIR)
     
-    train_dataset = bf.GTADataset("data_tot_sampled.csv", DATA_ROOT_DIR, augment=True, mmap=False)
+    train_dataset = bf.GTADataset("data_tot.csv", DATA_ROOT_DIR, augment=True, mmap=True)
     
-    test_dataset = bf.GTADataset("data_TEST.csv", DATA_ROOT_DIR, mmap=False)
-    #test_dataset = bf.GTADataset("temp.csv", DATA_ROOT_DIR, mmap=False)
+    test_dataset = bf.GTADataset("data_TEST.csv", DATA_ROOT_DIR, mmap=True)
+    #test_dataset = bf.GTADataset("temp.csv", DATA_ROOT_DIR, bf.test_preprocess, mmap=True)
     
     train_dl = DataLoader(train_dataset, 
                             batch_size=64, 
@@ -47,24 +47,25 @@ if __name__ == '__main__':
     
 
 
-    model = Dnet_v2().to(device) #qui inserire modello da trainare
-    model.load_state_dict(torch.load(CKP_DIR+ "00050.pth"))
+    model = MapNet_v9().to(device) #qui inserire modello da trainare
+    #model.load_state_dict(torch.load(CKP_DIR+ "00050.pth"))
+    #model = bf.reuse_weights("./Data/models/Dnet_v2/checkpoint/"+ "00100.pth", model)
     
     trainer = Trainer(device, model, 
                       ckp_dir = CKP_DIR, 
                       score_dir = SCORE_DIR, 
                       score_file = SCORE_FILE)
     
-    '''
+    
     trainer.train_model(train_dl,
-                        max_epoch=20, 
+                        max_epoch=45, 
                         steps_per_epoch=0,
                         lr=0.01,
                         weight_decay=0,
                         log_step=1, 
                         ckp_save_step = 5,
-                        ckp_epoch=80)
-    '''
+                        ckp_epoch=55)
+    
     
     print('Starting test...')
     sa_pred, sa_gt = trainer.test_model(test_dl)
@@ -75,16 +76,17 @@ if __name__ == '__main__':
     
     ax[0].plot(sa_pred[1:])
     ax[0].plot(sa_gt[1:], alpha=0.5)
-     
+    ax[0].set_xlabel("Frames")
+    ax[0].set_ylabel("Steering Angle")
+    
     hs = bf.read_object(SCORE_DIR+"00100_history_score.pkl")
 
     ax[1].plot(hs["MAE_sa_train"])
+
     
 
 #== lasts epoch results (train) ==
-#Total Train Loss: 0.0006219432 --- MAE SA: 0.018527 epoch 50
 
 
 #== Best Result ==
-#Total Test Loss: 0.0057006911 --- MAE SA: 0.043364 # epoch 50
-#Total Test Loss: 0.0049491776 --- MAE SA: 0.042374 # epoch 100
+#Total Test Loss: 0.0022164744 --- MAE SA: 0.034146 # epoch 50
