@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
 
     model = MapNet_v9().to(device) #qui inserire modello da trainare
-    #model.load_state_dict(torch.load(CKP_DIR+ "00050.pth"))
+    model.load_state_dict(torch.load(CKP_DIR+ "00070.pth"))
     #model = bf.reuse_weights("./Data/models/Dnet_v2/checkpoint/"+ "00100.pth", model)
     
     trainer = Trainer(device, model, 
@@ -56,7 +56,7 @@ if __name__ == '__main__':
                       score_dir = SCORE_DIR, 
                       score_file = SCORE_FILE)
     
-    
+    """
     trainer.train_model(train_dl,
                         max_epoch=45, 
                         steps_per_epoch=0,
@@ -66,7 +66,7 @@ if __name__ == '__main__':
                         ckp_save_step = 5,
                         ckp_epoch=55)
     
-    
+    """
     print('Starting test...')
     sa_pred, sa_gt = trainer.test_model(test_dl)
     
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     ax[0].set_xlabel("Frames")
     ax[0].set_ylabel("Steering Angle")
     
-    hs = bf.read_object(SCORE_DIR+"00100_history_score.pkl")
+    hs = bf.read_object(SCORE_DIR+"00070_history_score.pkl")
 
     ax[1].plot(hs["MAE_sa_train"])
 
@@ -90,3 +90,4 @@ if __name__ == '__main__':
 
 #== Best Result ==
 #Total Test Loss: 0.0022164744 --- MAE SA: 0.034146 # epoch 50
+#Total Test Loss: 0.0020813872 --- MAE SA: 0.033407 # epoch 70
