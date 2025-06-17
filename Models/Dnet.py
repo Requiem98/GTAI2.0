@@ -1,6 +1,6 @@
 from libraries import *
 import baseFunctions as bf
-from Models.modules.general import *
+from models.modules.general import *
     
 class Dnet(nn.Module):
 
@@ -10,29 +10,35 @@ class Dnet(nn.Module):
         
         
         #Image
-        self.conv1 = CONV_BLOCK(3, 24, 5, 2, "valid", 1)   #Bx24x110x110
-        self.conv2 = CONV_BLOCK(24, 36, 5, 2, "valid", 1)  #Bx24x53x53
-        self.conv3 = CONV_BLOCK(36, 48, 5, 2, "valid", 1)  #Bx48x25x25
-        self.conv4 = CONV_BLOCK(48, 64, 3, 1, "valid", 1)  #Bx64x23x23
-        self.conv5 = CONV_BLOCK(64, 64, 3, 1, "valid", 4)  #Bx64x5x5
+        self.res_block1 = RES_BLOCK(3, 64, 5, 2, 4)     #Bx64x56x56
+        self.res_block2 = RES_BLOCK(64, 128, 3, 3, 3)   #Bx128x18x18
+        self.res_block3 = RES_BLOCK(128, 512, 3, 2, 3)  #Bx512x6x6
         
-        self.flatten = nn.Flatten()    
+        self.flatten = nn.Flatten()
         
-        self.mlp = MLP(in_dim = 1600, hidden_dims = [100, 50, 10])
         
-        self.head = nn.Linear(10, 1) #steering angle
+        self.n_linearImage = NormLinear(18432, 2048, 0)
+        self.n_linearSpeed = NormLinear(1, 2048, 0)
+        
+        
+        self.mlp = MLP(in_dim = 4096, hidden_dims = [4096, 2048, 2048, 1024, 1024, 256, 32])
+        
+        self.head = nn.Linear(32, 1) #steering angle
 
 
 
-    def forward(self, x, x_speed):
+    def forward(self, x_img, x_speed):
 
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.conv3(x)
-        x = self.conv4(x)
-        x = self.conv5(x)
+        x_img = self.res_block1(x_img)
+        x_img = self.res_block2(x_img)
+        x_img = self.res_block3(x_img)
 
-        x = self.flatten(x)
+        x_img = self.flatten(x_img)
+                
+        x_img = self.n_linearImage(x_img)
+        x_speed = self.n_linearSpeed(x_speed)
+        
+        x = torch.cat([x_img,x_speed], 1)
         
         x = self.mlp(x)
 
@@ -80,7 +86,8 @@ class Trainer():
             history_score = defaultdict(list)
             
        
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=5, verbose=True)
+        scheduler1 = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=5, verbose=True)  # goal: minimize loss
+        scheduler2 = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, 'min', patience=5, verbose=True)  # goal: minimize mae
             
         torch.backends.cudnn.benchmark = True
         
@@ -130,7 +137,8 @@ class Trainer():
             
                 
             
-            scheduler.step(train_tot_loss + mae_sa)
+            scheduler1.step(train_tot_loss)
+            scheduler2.step(mae_sa)
 
             if (epoch+1) % log_step == 0:
                 print('Total Train Loss: %7.10f --- MAE SA: %7.6f' % (train_tot_loss/steps_per_epoch, mae_sa/steps_per_epoch))

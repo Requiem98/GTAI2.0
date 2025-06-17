@@ -1,7 +1,7 @@
 from libraries import *
 import baseFunctions as bf
-from Models.modules.general import *
-from Models.modules.ViT import ViT
+from models.modules.general import *
+from models.modules.ViT import ViT
 
 
         
@@ -19,9 +19,9 @@ class ViT_MapNet_v2(nn.Module):
         #===========================
         
 
-        self.vit = ViT(image_size=224, patch_size=16, d_model=768, nhead=12, num_layers=12) #Bx197x512
+        self.vit = ViT(image_size=224, patch_size=16, d_model=512, nhead=8, num_layers=6) #Bx197x512
 
-        self.linear = nn.Linear(768, 125) #Bx197x125
+        self.linear = nn.Linear(512, 125) #Bx197x125
         self.relu = nn.ReLU()
         
         self.flat = nn.Flatten() #Bx24625 (~ 75% of 8192+24625)
@@ -40,7 +40,7 @@ class ViT_MapNet_v2(nn.Module):
         
 
         
-        self.mlp = MLP(32817, [4096, 1024, 256, 32])
+        self.mlp = MLP(32817, [4096, 1024, 512, 256, 64, 32])
         
 
         self.head = nn.Linear(32, 1) #steering angle
