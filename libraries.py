@@ -32,3 +32,4 @@ from PIL import ImageGrab
 from torchvision.utils import draw_bounding_boxes, draw_segmentation_masks
 
 DATA_ROOT_DIR = "./Data/gta_data/"
+#
